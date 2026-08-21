@@ -74,7 +74,12 @@ export default function CustomerLoginPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-xs font-semibold text-slate-300">Password</label>
+                <Link to="/forgot-password" className="text-[11px] text-yellow-400 hover:underline">
+                  Forgot Password?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
                 <input
@@ -96,6 +101,13 @@ export default function CustomerLoginPage() {
               {loading ? 'Authenticating...' : 'Sign In to Customer Portal'}
             </button>
           </form>
+
+          <div className="text-center text-xs text-slate-400">
+            Need a new account?{' '}
+            <Link to="/register" className="text-yellow-400 font-semibold hover:underline">
+              Register B2B Account
+            </Link>
+          </div>
 
           <div className="pt-4 border-t border-slate-800 text-center">
             <p className="text-[11px] text-slate-400">Demo Account: <strong className="text-yellow-400">customer@apex.com</strong> (Gold Tier)</p>

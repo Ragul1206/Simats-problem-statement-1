@@ -28,19 +28,27 @@ const financeRoutes = require('./src/routes/financeRoutes');
 const warrantyRoutes = require('./src/routes/warrantyRoutes');
 const auditRoutes = require('./src/routes/auditRoutes');
 
-app.use('/api/auth', authRoutes);
-app.use('/api/vendors', vendorRoutes);
-app.use('/api/rfqs', rfqRoutes);
-app.use('/api/quotations', quoteRoutes);
-app.use('/api/ai', aiRoutes);
-app.use('/api/purchase-orders', poRoutes);
-app.use('/api/inventory', inventoryRoutes);
-app.use('/api/finance', financeRoutes);
-app.use('/api/warranty', warrantyRoutes);
-app.use('/api/audit', auditRoutes);
+// Helper to register routes on both /api/... and /...
+const registerRoute = (routePath, router) => {
+  app.use(routePath, router);
+  if (routePath.startsWith('/api')) {
+    app.use(routePath.replace('/api', ''), router);
+  }
+};
+
+registerRoute('/api/auth', authRoutes);
+registerRoute('/api/vendors', vendorRoutes);
+registerRoute('/api/rfqs', rfqRoutes);
+registerRoute('/api/quotations', quoteRoutes);
+registerRoute('/api/ai', aiRoutes);
+registerRoute('/api/purchase-orders', poRoutes);
+registerRoute('/api/inventory', inventoryRoutes);
+registerRoute('/api/finance', financeRoutes);
+registerRoute('/api/warranty', warrantyRoutes);
+registerRoute('/api/audit', auditRoutes);
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get(['/health', '/api/health'], (req, res) => {
   res.json({
     status: 'OK',
     service: 'Procurement ERP Backend REST API',

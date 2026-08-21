@@ -65,7 +65,12 @@ export default function CompanyLoginPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-xs font-semibold text-slate-300">Password</label>
+                <Link to="/forgot-password" className="text-[11px] text-indigo-400 hover:underline">
+                  Forgot Password?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
                 <input
@@ -87,6 +92,13 @@ export default function CompanyLoginPage() {
               {loading ? 'Authenticating...' : 'Sign In to Company Portal'}
             </button>
           </form>
+
+          <div className="text-center text-xs text-slate-400">
+            Need a new account?{' '}
+            <Link to="/register" className="text-indigo-400 font-semibold hover:underline">
+              Create Account / Register
+            </Link>
+          </div>
 
           {/* Quick Demo Pre-fill */}
           <div className="pt-4 border-t border-slate-800 space-y-2 text-center">

@@ -12,13 +12,14 @@ exports.login = (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    const cleanEmail = email.trim().toLowerCase();
+    const user = db.prepare('SELECT * FROM users WHERE LOWER(email) = ?').get(cleanEmail);
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    const validPassword = bcrypt.compareSync(password, user.password_hash);
+    const validPassword = bcrypt.compareSync(password.trim(), user.password_hash);
     if (!validPassword) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -142,5 +143,112 @@ exports.getCurrentUser = (req, res) => {
     res.json({ user });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch user details' });
+  }
+};
+
+exports.registerUser = (req, res) => {
+  try {
+    const { name, email, password, role, department } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Name, Email, and Password are required' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const existingUser = db.prepare('SELECT id FROM users WHERE LOWER(email) = ?').get(cleanEmail);
+    if (existingUser) {
+      return res.status(400).json({ error: 'User with this email already exists' });
+    }
+
+    const userId = 'usr-' + uuidv4().substring(0, 8);
+    const passwordHash = bcrypt.hashSync(password.trim(), 10);
+    const userRole = role || 'customer';
+    const userDept = department || (userRole === 'customer' ? 'B2B Buyer Division' : 'Procurement');
+
+    db.prepare(`
+      INSERT INTO users (id, name, email, password_hash, role, department, customer_tier, discount_rate, total_spent)
+      VALUES (?, ?, ?, ?, ?, ?, 'Bronze', 0.0, 0.0)
+    `).run(userId, name.trim(), cleanEmail, passwordHash, userRole, userDept);
+
+    const token = jwt.sign(
+      { id: userId, name, email: cleanEmail, role: userRole },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.status(201).json({
+      message: 'Account registered successfully',
+      token,
+      user: {
+        id: userId,
+        name,
+        email: cleanEmail,
+        role: userRole,
+        department: userDept
+      }
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ error: 'Failed to register account' });
+  }
+};
+
+exports.forgotPassword = (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const user = db.prepare('SELECT id, name, email FROM users WHERE LOWER(email) = ?').get(cleanEmail);
+
+    if (!user) {
+      return res.json({ message: 'If an account exists with that email, a password reset token has been generated.' });
+    }
+
+    const resetToken = jwt.sign({ id: user.id, email: user.email, type: 'reset' }, JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({
+      message: 'Password reset token generated successfully.',
+      resetToken,
+      instructions: 'Copy your reset token below to reset your password.'
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Failed to process forgot password request' });
+  }
+};
+
+exports.resetPassword = (req, res) => {
+  try {
+    const { resetToken, newPassword } = req.body;
+    if (!resetToken || !newPassword) {
+      return res.status(400).json({ error: 'Reset token and new password are required' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(resetToken, JWT_SECRET);
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid or expired password reset token' });
+    }
+
+    if (decoded.type !== 'reset') {
+      return res.status(400).json({ error: 'Invalid token type' });
+    }
+
+    const user = db.prepare('SELECT id FROM users WHERE id = ?').get(decoded.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const newPasswordHash = bcrypt.hashSync(newPassword.trim(), 10);
+    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newPasswordHash, user.id);
+
+    res.json({ message: 'Password reset successfully! You can now log in with your new password.' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Failed to reset password' });
   }
 };

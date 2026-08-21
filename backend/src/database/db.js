@@ -1,11 +1,16 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
-const dataDir = path.join(__dirname, '../../data');
+const dataDir = process.env.VERCEL ? path.join(os.tmpdir(), 'data') : path.join(__dirname, '../../data');
 const dbFile = path.join(dataDir, 'procurement_store.json');
 
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+try {
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+} catch (e) {
+  console.warn('Data directory creation warning:', e.message);
 }
 
 let store = {
@@ -44,6 +49,15 @@ function saveStore() {
 }
 
 loadStore();
+
+// Auto-seed in-memory store if empty on serverless cold start
+if (!store.users || store.users.length === 0) {
+  try {
+    require('./seed');
+  } catch (err) {
+    console.warn('Auto-seed fallback warning:', err.message);
+  }
+}
 
 // Pure JS SQL-compatible Database Interface
 const db = {
@@ -176,8 +190,11 @@ function querySelector(sql, params, mode) {
   if (sql.includes('FROM users')) {
     results = [...store.users];
     if (params.length > 0) {
-      if (sql.includes('WHERE email = ?')) results = results.filter(u => u.email === params[0]);
-      else if (sql.includes('WHERE id = ?')) results = results.filter(u => u.id === params[0]);
+      if (sql.includes('WHERE email = ?') || sql.includes('WHERE LOWER(email) = ?')) {
+        results = results.filter(u => u.email && u.email.trim().toLowerCase() === String(params[0]).trim().toLowerCase());
+      } else if (sql.includes('WHERE id = ?')) {
+        results = results.filter(u => u.id === params[0]);
+      }
     }
   } else if (sql.includes('FROM vendors')) {
     results = store.vendors.map(v => ({ ...v }));

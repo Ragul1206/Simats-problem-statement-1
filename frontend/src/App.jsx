@@ -8,6 +8,8 @@ import Sidebar from './components/Sidebar';
 import CentralLoginHub from './pages/CentralLoginHub';
 import CompanyLoginPage from './pages/CompanyLoginPage';
 import CustomerLoginPage from './pages/CustomerLoginPage';
+import RegisterPage from './pages/RegisterPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 
 // Main Application Pages
 import DashboardPage from './pages/DashboardPage';
@@ -56,6 +58,8 @@ export default function App() {
           <Route path="/login" element={<CentralLoginHub />} />
           <Route path="/login/company" element={<CompanyLoginPage />} />
           <Route path="/login/customer" element={<CustomerLoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
           {/* Protected Application Routes */}
           <Route element={<ProtectedLayout />}>
