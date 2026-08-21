@@ -25,6 +25,50 @@ import WarrantyClaimsPage from './pages/WarrantyClaimsPage';
 import FinancePage from './pages/FinancePage';
 import AuditLogsPage from './pages/AuditLogsPage';
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("ERP Application Error:", error, errorInfo);
+  }
+
+  handleReset = () => {
+    localStorage.clear();
+    window.location.href = '/login';
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center">
+          <div className="max-w-md w-full glass-panel p-8 rounded-2xl border border-slate-800 space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto text-xl font-bold">!</div>
+            <h2 className="text-xl font-bold font-heading">Session State Reset Required</h2>
+            <p className="text-xs text-slate-400">
+              {this.state.error?.message || 'An unexpected session state error occurred.'}
+            </p>
+            <button
+              onClick={this.handleReset}
+              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white rounded-xl transition"
+            >
+              Reset ERP Cache & Return to Login
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 function ProtectedLayout() {
   const { user, loading } = useAuth();
 
@@ -51,8 +95,9 @@ function ProtectedLayout() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <ErrorBoundary>
+      <AuthProvider>
+        <BrowserRouter>
         <Routes>
           {/* Portals */}
           <Route path="/login" element={<CentralLoginHub />} />
@@ -82,5 +127,6 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+  </ErrorBoundary>
   );
 }
