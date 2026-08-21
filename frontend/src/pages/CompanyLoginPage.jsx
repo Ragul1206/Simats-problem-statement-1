@@ -100,30 +100,42 @@ export default function CompanyLoginPage() {
             </Link>
           </div>
 
-          {/* Quick Demo Pre-fill */}
-          <div className="pt-4 border-t border-slate-800 space-y-2 text-center">
-            <p className="text-[11px] text-slate-400">Quick Test Credentials:</p>
-            <div className="flex justify-center space-x-2">
-              <button
-                type="button"
-                onClick={() => { setEmail('pm@company.com'); setPassword('password123'); }}
-                className="text-[10px] bg-slate-800 hover:bg-slate-700 text-indigo-300 px-2 py-1 rounded"
-              >
-                Procurement Mgr
-              </button>
-              <button
-                type="button"
-                onClick={() => { setEmail('finance@company.com'); setPassword('password123'); }}
-                className="text-[10px] bg-slate-800 hover:bg-slate-700 text-emerald-300 px-2 py-1 rounded"
-              >
-                Finance Mgr
-              </button>
+          {/* Quick Demo Credentials Box */}
+          <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-xl space-y-2">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
+              <span className="flex items-center space-x-1.5 text-indigo-400">
+                <ShieldCheck className="w-4 h-4" />
+                <span>Test Login Credentials</span>
+              </span>
+              <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-mono font-bold">Password: password123</span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => { setEmail('admin@company.com'); setPassword('password123'); }}
-                className="text-[10px] bg-slate-800 hover:bg-slate-700 text-rose-300 px-2 py-1 rounded"
+                className="p-2 bg-slate-800/80 hover:bg-rose-500/20 hover:border-rose-500/40 border border-slate-700/50 rounded-lg text-left transition group"
               >
-                Admin
+                <div className="text-[10px] font-bold text-rose-400">Admin</div>
+                <div className="text-[9px] text-slate-400 truncate">admin@company.com</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setEmail('pm@company.com'); setPassword('password123'); }}
+                className="p-2 bg-slate-800/80 hover:bg-indigo-500/20 hover:border-indigo-500/40 border border-slate-700/50 rounded-lg text-left transition group"
+              >
+                <div className="text-[10px] font-bold text-indigo-300">Procurement</div>
+                <div className="text-[9px] text-slate-400 truncate">pm@company.com</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setEmail('finance@company.com'); setPassword('password123'); }}
+                className="p-2 bg-slate-800/80 hover:bg-emerald-500/20 hover:border-emerald-500/40 border border-slate-700/50 rounded-lg text-left transition group"
+              >
+                <div className="text-[10px] font-bold text-emerald-300">Finance</div>
+                <div className="text-[9px] text-slate-400 truncate">finance@company.com</div>
               </button>
             </div>
           </div>
