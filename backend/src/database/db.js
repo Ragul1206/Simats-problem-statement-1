@@ -231,8 +231,9 @@ function querySelector(sql, params, mode) {
     if (params.length > 0) {
       if (sql.includes('WHERE r.id = ?') || sql.includes('WHERE id = ?')) {
         results = results.filter(r => r.id === params[0]);
-      } else if (sql.includes('WHERE r.customer_id = ?')) {
-        results = results.filter(r => r.customer_id === params[0]);
+      } else if (sql.includes('WHERE r.customer_id = ?') || sql.includes('r.customer_id = ? OR r.created_by = ?')) {
+        const targetId = params[0];
+        results = results.filter(r => r.customer_id === targetId || r.created_by === targetId);
       }
     }
   } else if (sql.includes('FROM quotations')) {

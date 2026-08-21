@@ -67,12 +67,15 @@ export default function RfqsPage() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!formData.product_id && products.length > 0) {
+    if (!formData.product_id && !formData.custom_product_name && products.length > 0) {
       formData.product_id = products[0].id;
     }
     try {
-      await api.post('/rfqs', formData);
+      const res = await api.post('/rfqs', formData);
       setShowCreateModal(false);
+      if (res.data && res.data.rfq) {
+        setRfqs(prev => [res.data.rfq, ...prev]);
+      }
       fetchData();
     } catch (err) {
       alert(err.response?.data?.error || 'Failed to create RFQ');

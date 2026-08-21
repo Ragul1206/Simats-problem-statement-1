@@ -14,8 +14,8 @@ exports.getAllRFQs = (req, res) => {
 
     // Filter by customer if user is customer
     if (req.user && req.user.role === 'customer') {
-      sql += ' WHERE r.customer_id = ?';
-      params.push(req.user.id);
+      sql += ' WHERE (r.customer_id = ? OR r.created_by = ?)';
+      params.push(req.user.id, req.user.id);
     }
 
     sql += ' ORDER BY r.created_at DESC';
@@ -150,8 +150,15 @@ exports.createRFQ = (req, res) => {
       });
     }
 
-    const created = db.prepare('SELECT * FROM rfqs WHERE id = ?').get(id);
-    res.status(201).json({ message: 'RFQ created successfully', rfq: created });
+    const fullCreated = db.prepare(`
+      SELECT r.*, p.name as product_name, p.sku as product_sku, p.unit_price as product_base_price,
+             0 as quotation_count, 0 as assigned_vendor_count
+      FROM rfqs r
+      JOIN products p ON r.product_id = p.id
+      WHERE r.id = ?
+    `).get(id);
+
+    res.status(201).json({ message: 'RFQ created successfully', rfq: fullCreated });
   } catch (error) {
     console.error('Error creating RFQ:', error);
     res.status(500).json({ error: 'Failed to create RFQ' });
