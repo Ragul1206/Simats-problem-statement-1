@@ -205,46 +205,84 @@ export default function RfqsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block font-semibold text-slate-300 mb-1">Target Product *</label>
-                <select
-                  value={formData.product_id}
-                  onChange={(e) => handleProductChange(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white"
-                  required
+            <div className="space-y-3 bg-slate-950/80 p-3.5 rounded-xl border border-slate-800">
+              <div className="flex items-center justify-between">
+                <label className="block font-semibold text-slate-300">Target Product *</label>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({
+                    ...prev,
+                    is_custom_product: !prev.is_custom_product,
+                    custom_product_name: '',
+                    product_id: !prev.is_custom_product ? '' : (products[0]?.id || '')
+                  }))}
+                  className="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium underline"
                 >
-                  <option value="" disabled>Select Product</option>
-                  {products.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
+                  {formData.is_custom_product ? '← Select Existing Product' : '+ Type Custom Product (e.g. Laptop)'}
+                </button>
               </div>
 
-              <div>
-                <label className="block font-semibold text-slate-300 mb-1">Quantity Required *</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white"
-                  required
-                />
-              </div>
+              {!formData.is_custom_product ? (
+                <div>
+                  <select
+                    value={formData.product_id}
+                    onChange={(e) => {
+                      if (e.target.value === 'NEW_CUSTOM') {
+                        setFormData(prev => ({ ...prev, is_custom_product: true, product_id: '' }));
+                      } else {
+                        handleProductChange(e.target.value);
+                      }
+                    }}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                    required
+                  >
+                    <option value="" disabled>Select Target Product</option>
+                    {products.map(p => (
+                      <option key={p.id} value={p.id}>{p.name} (Base ₹{p.unit_price?.toLocaleString('en-IN')})</option>
+                    ))}
+                    <option value="NEW_CUSTOM" className="text-indigo-400 font-bold">+ Type Custom Target Product (e.g. Laptop)...</option>
+                  </select>
+                </div>
+              ) : (
+                <div>
+                  <input
+                    type="text"
+                    value={formData.custom_product_name}
+                    onChange={(e) => setFormData({ ...formData, custom_product_name: e.target.value })}
+                    placeholder="Type target product name (e.g. Dell XPS Enterprise Laptop, AI Server)"
+                    className="w-full bg-slate-900 border border-indigo-500/50 rounded-xl px-3 py-2 text-white font-semibold placeholder-slate-500"
+                    required
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">This product will be auto-created in your catalog upon RFQ issue.</p>
+                </div>
+              )}
 
-              <div>
-                <label className="block font-semibold text-slate-300 mb-1">Target Price (₹) *</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.target_price}
-                  onChange={(e) => setFormData({ ...formData, target_price: e.target.value })}
-                  placeholder="Target unit price"
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-semibold text-emerald-400"
-                  required
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Quantity Required *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Target Unit Price (₹) *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.target_price}
+                    onChange={(e) => setFormData({ ...formData, target_price: e.target.value })}
+                    placeholder="e.g. 85000"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-semibold text-emerald-400"
+                    required
+                  />
+                </div>
               </div>
             </div>
 

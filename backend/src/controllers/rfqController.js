@@ -73,6 +73,7 @@ exports.createRFQ = (req, res) => {
     const {
       title,
       product_id,
+      custom_product_name,
       quantity,
       target_price,
       specifications,
@@ -82,18 +83,34 @@ exports.createRFQ = (req, res) => {
       customer_id
     } = req.body;
 
-    if (!title || !product_id || !quantity || !required_delivery_date) {
-      return res.status(400).json({ error: 'Title, Product, Quantity, and Required Delivery Date are required' });
+    if (!title || (!product_id && !custom_product_name) || !quantity || !required_delivery_date) {
+      return res.status(400).json({ error: 'Title, Target Product, Quantity, and Required Delivery Date are required' });
     }
 
     const id = 'rfq-' + uuidv4().substring(0, 8);
     const rfqNumber = 'RFQ-2026-' + Math.floor(1000 + Math.random() * 9000);
+    const finalTargetPrice = parseFloat(target_price) || 0;
 
-    // Fetch product unit_price as default target_price if not provided
-    let finalTargetPrice = parseFloat(target_price) || 0;
-    if (!finalTargetPrice) {
-      const prod = db.prepare('SELECT unit_price FROM products WHERE id = ?').get(product_id);
-      if (prod) finalTargetPrice = prod.unit_price || 0;
+    let finalProductId = product_id;
+
+    // Auto-create product on the fly if custom product name is provided
+    if (custom_product_name || (product_id && !product_id.startsWith('prd-'))) {
+      const productNameToUse = (custom_product_name || product_id).trim();
+      const existingProd = db.prepare('SELECT id, unit_price FROM products WHERE LOWER(name) = LOWER(?)').get(productNameToUse);
+      if (existingProd) {
+        finalProductId = existingProd.id;
+      } else {
+        const newProdId = 'prd-' + uuidv4().substring(0, 8);
+        const sku = 'SKU-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+        const basePrice = finalTargetPrice || 10000;
+        
+        db.prepare(`
+          INSERT INTO products (id, sku, name, category, description, unit, unit_price, stock_quantity, reorder_level)
+          VALUES (?, ?, ?, 'General Procurement', 'Target product added via RFQ requisition', 'Units', ?, 0, 5)
+        `).run(newProdId, sku, productNameToUse, basePrice);
+
+        finalProductId = newProdId;
+      }
     }
 
     // Determine Customer Loyalty Discount
@@ -114,7 +131,7 @@ exports.createRFQ = (req, res) => {
       id,
       rfqNumber,
       title,
-      product_id,
+      finalProductId,
       quantity,
       finalTargetPrice,
       specifications || '',
