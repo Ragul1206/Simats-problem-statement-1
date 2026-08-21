@@ -53,7 +53,10 @@ loadStore();
 // Auto-seed in-memory store if empty on serverless cold start
 if (!store.users || store.users.length === 0) {
   try {
-    require('./seed');
+    const seedFn = require('./seed');
+    if (typeof seedFn === 'function') {
+      seedFn();
+    }
   } catch (err) {
     console.warn('Auto-seed fallback warning:', err.message);
   }
