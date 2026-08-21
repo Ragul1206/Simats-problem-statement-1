@@ -74,6 +74,7 @@ exports.createRFQ = (req, res) => {
       title,
       product_id,
       quantity,
+      target_price,
       specifications,
       required_delivery_date,
       payment_terms,
@@ -88,6 +89,13 @@ exports.createRFQ = (req, res) => {
     const id = 'rfq-' + uuidv4().substring(0, 8);
     const rfqNumber = 'RFQ-2026-' + Math.floor(1000 + Math.random() * 9000);
 
+    // Fetch product unit_price as default target_price if not provided
+    let finalTargetPrice = parseFloat(target_price) || 0;
+    if (!finalTargetPrice) {
+      const prod = db.prepare('SELECT unit_price FROM products WHERE id = ?').get(product_id);
+      if (prod) finalTargetPrice = prod.unit_price || 0;
+    }
+
     // Determine Customer Loyalty Discount
     let discountRate = 0.0;
     let targetCustomerId = customer_id || (req.user.role === 'customer' ? req.user.id : null);
@@ -100,14 +108,15 @@ exports.createRFQ = (req, res) => {
     }
 
     db.prepare(`
-      INSERT INTO rfqs (id, rfq_number, title, product_id, quantity, specifications, required_delivery_date, payment_terms, status, customer_id, applied_discount_rate, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Open', ?, ?, ?)
+      INSERT INTO rfqs (id, rfq_number, title, product_id, quantity, target_price, specifications, required_delivery_date, payment_terms, status, customer_id, applied_discount_rate, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Open', ?, ?, ?)
     `).run(
       id,
       rfqNumber,
       title,
       product_id,
       quantity,
+      finalTargetPrice,
       specifications || '',
       required_delivery_date,
       payment_terms || 'Net 30',

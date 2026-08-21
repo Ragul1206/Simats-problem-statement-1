@@ -181,13 +181,13 @@ function seedDatabase() {
 
   // 4. Seed RFQs
   const insertRFQ = db.prepare(`
-    INSERT INTO rfqs (id, rfq_number, title, product_id, quantity, specifications, required_delivery_date, payment_terms, status, customer_id, applied_discount_rate, created_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO rfqs (id, rfq_number, title, product_id, quantity, target_price, specifications, required_delivery_date, payment_terms, status, customer_id, applied_discount_rate, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  insertRFQ.run('rfq-01', 'RFQ-2026-001', 'Procurement of 10 Enterprise AI Control Servers', 'prd-01', 10, 'Dual Intel Xeon Platinum 8480+, 512GB DDR5 ECC RAM, 4x 3.84TB NVMe SSDs, Redundant 1600W PSUs', '2026-09-15', 'Net 45 / EMI', 'Quotes Received', 'usr-cust-01', 0.10, 'usr-pm-01');
-  insertRFQ.run('rfq-02', 'RFQ-2026-002', 'Bulk Order Laser Sensor Arrays for Factory Expansion', 'prd-02', 25, 'IP67 enclosure, RS485 Modbus output, calibration certificate included', '2026-09-30', 'Net 30', 'Quotes Received', null, 0.0, 'usr-pe-01');
-  insertRFQ.run('rfq-03', 'RFQ-2026-003', '3-Phase Heavy Duty Power Inverters 100kVA', 'prd-03', 4, '100kVA nominal output, 5-year comprehensive warranty, on-site commissioning required', '2026-10-05', 'Net 60 / EMI', 'Open', null, 0.0, 'usr-pm-01');
+  insertRFQ.run('rfq-01', 'RFQ-2026-001', 'Procurement of 10 Enterprise AI Control Servers', 'prd-01', 10, 120000.0, 'Dual Intel Xeon Platinum 8480+, 512GB DDR5 ECC RAM, 4x 3.84TB NVMe SSDs, Redundant 1600W PSUs', '2026-09-15', 'Net 45 / EMI', 'Quotes Received', 'usr-cust-01', 0.10, 'usr-pm-01');
+  insertRFQ.run('rfq-02', 'RFQ-2026-002', 'Bulk Order Laser Sensor Arrays for Factory Expansion', 'prd-02', 25, 17500.0, 'IP67 enclosure, RS485 Modbus output, calibration certificate included', '2026-09-30', 'Net 30', 'Quotes Received', null, 0.0, 'usr-pe-01');
+  insertRFQ.run('rfq-03', 'RFQ-2026-003', '3-Phase Heavy Duty Power Inverters 100kVA', 'prd-03', 4, 230000.0, '100kVA nominal output, 5-year comprehensive warranty, on-site commissioning required', '2026-10-05', 'Net 60 / EMI', 'Open', null, 0.0, 'usr-pm-01');
 
   // Assign Vendors to RFQs
   const insertRFQVendor = db.prepare(`

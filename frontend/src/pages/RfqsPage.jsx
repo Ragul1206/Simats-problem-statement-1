@@ -42,7 +42,12 @@ export default function RfqsPage() {
       setVendors(vRes.data.vendors || []);
 
       if (pRes.data.products?.length > 0) {
-        setFormData(prev => ({ ...prev, product_id: pRes.data.products[0].id }));
+        const firstProd = pRes.data.products[0];
+        setFormData(prev => ({
+          ...prev,
+          product_id: firstProd.id,
+          target_price: firstProd.unit_price || ''
+        }));
       }
     } catch (err) {
       console.error('Error fetching RFQs data:', err);
@@ -51,8 +56,20 @@ export default function RfqsPage() {
     }
   };
 
+  const handleProductChange = (prodId) => {
+    const selectedProd = products.find(p => p.id === prodId);
+    setFormData(prev => ({
+      ...prev,
+      product_id: prodId,
+      target_price: selectedProd ? selectedProd.unit_price : prev.target_price
+    }));
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
+    if (!formData.product_id && products.length > 0) {
+      formData.product_id = products[0].id;
+    }
     try {
       await api.post('/rfqs', formData);
       setShowCreateModal(false);
@@ -81,7 +98,16 @@ export default function RfqsPage() {
         </div>
 
         <button
-          onClick={() => setShowCreateModal(true)}
+          onClick={() => {
+            if (products.length > 0) {
+              setFormData(prev => ({
+                ...prev,
+                product_id: prev.product_id || products[0].id,
+                target_price: prev.target_price || products[0].unit_price
+              }));
+            }
+            setShowCreateModal(true);
+          }}
           className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/25 flex items-center space-x-2 self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
@@ -120,6 +146,14 @@ export default function RfqsPage() {
                 <div className="flex justify-between">
                   <span className="text-slate-400">Quantity Needed:</span>
                   <span className="font-bold text-indigo-300">{rfq.quantity} units</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Target Unit Price:</span>
+                  <span className="font-bold text-emerald-400">₹{Number(rfq.target_price || rfq.product_base_price || 0).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Est. Total Budget:</span>
+                  <span className="font-bold text-yellow-400">₹{Number((rfq.target_price || rfq.product_base_price || 0) * rfq.quantity).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Delivery Required By:</span>
@@ -171,17 +205,18 @@ export default function RfqsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block font-semibold text-slate-300 mb-1">Target Product *</label>
                 <select
                   value={formData.product_id}
-                  onChange={(e) => setFormData({ ...formData, product_id: e.target.value })}
+                  onChange={(e) => handleProductChange(e.target.value)}
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white"
                   required
                 >
+                  <option value="" disabled>Select Product</option>
                   {products.map(p => (
-                    <option key={p.id} value={p.id}>{p.name} (Base ₹{p.unit_price?.toLocaleString('en-IN')})</option>
+                    <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
               </div>
@@ -194,6 +229,20 @@ export default function RfqsPage() {
                   value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Target Price (₹) *</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.target_price}
+                  onChange={(e) => setFormData({ ...formData, target_price: e.target.value })}
+                  placeholder="Target unit price"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-semibold text-emerald-400"
                   required
                 />
               </div>

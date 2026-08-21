@@ -105,11 +105,17 @@ export default function RfqDetailPage() {
         </div>
 
         {/* Info Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-800 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-800 text-xs">
           <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-1">
             <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Product & Quantity</span>
             <p className="text-white font-bold text-sm">{rfq.product_name}</p>
             <p className="text-indigo-300 font-semibold">{rfq.quantity} Units Required</p>
+          </div>
+
+          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-1">
+            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Target Price & Budget</span>
+            <p className="text-emerald-400 font-bold text-sm">₹{Number(rfq.target_price || rfq.product_base_price || 0).toLocaleString('en-IN')} / unit</p>
+            <p className="text-yellow-400 font-semibold">Total: ₹{Number((rfq.target_price || rfq.product_base_price || 0) * rfq.quantity).toLocaleString('en-IN')}</p>
           </div>
 
           <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-1">
