@@ -1,7 +1,8 @@
 const { createClient } = require('@supabase/supabase-js');
 const dotenv = require('dotenv');
 
-dotenv.config();
+const path = require('path');
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 // Standardize URL by stripping trailing slash and /rest/v1 if included by user
 let rawUrl = process.env.SUPABASE_URL || 'https://fmbkkuccbkkmnighvopg.supabase.co';
